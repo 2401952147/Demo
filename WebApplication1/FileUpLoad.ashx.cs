@@ -38,9 +38,6 @@ namespace WebApplication1
                 case "ExcelOperationClass":
                     _str = ExcelOperationClass(context);//导出到excel
                     break;
-                case "SendCode":
-                    _str = SendCodePhone(context);//导出到excel
-                    break;
                 default:
                     break;
             }
