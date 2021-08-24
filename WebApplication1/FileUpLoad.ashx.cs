@@ -13,6 +13,7 @@ using NPOI.POIFS.FileSystem;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
 using System.Collections;
+using System.Text;
 
 namespace WebApplication1
 {
@@ -36,6 +37,9 @@ namespace WebApplication1
                     break;
                 case "ExcelOperationClass":
                     _str = ExcelOperationClass(context);//导出到excel
+                    break;
+                case "SendCode":
+                    _str = SendCodePhone(context);//导出到excel
                     break;
                 default:
                     break;
