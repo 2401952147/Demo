@@ -7,6 +7,12 @@ using System.Web;
 using MSWord = Microsoft.Office.Interop.Word;
 using Microsoft.Office.Interop.Word;
 
+using NPOI.HSSF.UserModel;
+using NPOI.HPSF;
+using NPOI.POIFS.FileSystem;
+using NPOI.SS.UserModel;
+using NPOI.SS.Util;
+
 namespace WebApplication1
 {
     /// <summary>
@@ -26,6 +32,9 @@ namespace WebApplication1
                     break;
                 case "CURDWord":
                     _str = CURDWord(context);//文件上传
+                    break;
+                case "ExcelOperationClass":
+                    _str = ExcelOperationClass(context);//导出到excel
                     break;
                 default:
                     break;
@@ -72,18 +81,20 @@ namespace WebApplication1
 
                 //上传成功
                 context.Response.Write("{\"state\":\"success\",\"msg\":\"成功\"}");
-                //return 200;
             }
 
             //上传失败
             else
             {
                 context.Response.Write("{\"state\":\"fail\",\"msg\":\"失败\"}");
-                //return 100;
             }
         }
 
-        //word书签操作
+        /// <summary>
+        /// word书签操作
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public string CURDWord(HttpContext context)
         {
             MSWord.Application wordApp;               //Word应用程序变量 
@@ -144,6 +155,9 @@ namespace WebApplication1
             return "200";
         }
 
+        /// <summary>
+        /// 杀掉windows线程
+        /// </summary>
         public void killWinWordProcess()
         {
             System.Diagnostics.Process[] processes = System.Diagnostics.Process.GetProcessesByName("WINWORD");
@@ -155,6 +169,146 @@ namespace WebApplication1
                     process.Kill();
                 }
             }
+        }
+
+        /// <summary>
+        /// 导出到excel
+        /// </summary>
+        public string ExcelOperationClass(HttpContext context)
+        {
+            #region 引用
+            //using NPOI.HSSF.UserModel;
+            //using NPOI.HPSF;
+            //using NPOI.POIFS.FileSystem;
+            //using NPOI.SS.UserModel;
+            //using NPOI.SS.Util;
+            #endregion
+
+            #region 创建Excel文件并写入表头
+            //创建一个新的excel文件
+            HSSFWorkbook book = new HSSFWorkbook();
+            ISheet sheet = book.CreateSheet("sheet1");
+            //创建一行 也就是在sheet1这个工作区创建一行 在NPOI中只有先创建才能后使用
+            IRow row = sheet.CreateRow(0);//--索引从0开始
+            for (int i = 0; i < 3; i++)
+            {
+                //设置单元格的宽度
+                sheet.SetColumnWidth(i, 30 * 360);
+            }
+            sheet.SetColumnWidth(3, 30 * 156);
+            sheet.SetColumnWidth(4, 30 * 156);
+            sheet.SetColumnWidth(5, 30 * 156);
+            sheet.SetColumnWidth(6, 30 * 156);
+
+            //定义一个样式，迎来设置样式属性
+            ICellStyle setborder = book.CreateCellStyle();
+
+            //设置单元格上下左右边框线 但是不包括最外面的一层
+            setborder.BorderLeft = BorderStyle.Thin;
+            setborder.BorderRight = BorderStyle.Thin;
+            setborder.BorderBottom = BorderStyle.Thin;
+            setborder.BorderTop = BorderStyle.Thin;
+
+            //文字水平和垂直对齐方式
+            setborder.VerticalAlignment = VerticalAlignment.Center;//垂直居中
+            setborder.Alignment = HorizontalAlignment.Center;//水平居中
+            setborder.WrapText = true;//自动换行
+
+            //再定义一个样式，用来设置最上面标题行的样式
+            ICellStyle setborderdeth = book.CreateCellStyle();
+
+            //设置单元格上下左右边框线 但是不包括最外面的一层
+            setborderdeth.BorderLeft = BorderStyle.Thin;
+            setborderdeth.BorderRight = BorderStyle.Thin;
+            setborderdeth.BorderBottom = BorderStyle.Thin;
+            setborderdeth.BorderTop = BorderStyle.Thin;
+
+            //定义一个字体样式
+            IFont font = book.CreateFont();
+            //将字体设为红色
+            font.Color = IndexedColors.Red.Index;
+            //font.FontHeightInPoints = 17;
+            //将定义的font样式给到setborderdeth样式中
+            setborderdeth.SetFont(font);
+
+            //文字水平和垂直对齐方式
+            setborderdeth.VerticalAlignment = VerticalAlignment.Center;//垂直居中
+            setborderdeth.Alignment = HorizontalAlignment.Center;//水平居中
+            setborderdeth.WrapText = true;  //自动换行
+
+            //设置第一行单元格的高度为25
+            row.HeightInPoints = 20;
+            //设置单元格的值
+            row.CreateCell(0).SetCellValue("流程");
+            //将style属性给到这个单元格
+            row.GetCell(0).CellStyle = setborderdeth;
+            row.CreateCell(1).SetCellValue("二级目录");
+            row.GetCell(1).CellStyle = setborderdeth;
+            row.CreateCell(2).SetCellValue("任务");
+            row.GetCell(2).CellStyle = setborderdeth;
+            row.CreateCell(3).SetCellValue("得分");
+            row.GetCell(3).CellStyle = setborderdeth;
+            row.CreateCell(4).SetCellValue("个人分");
+            row.GetCell(4).CellStyle = setborderdeth;
+            row.CreateCell(5).SetCellValue("团队分");
+            row.GetCell(5).CellStyle = setborderdeth;
+            row.CreateCell(6).SetCellValue("总分");
+            row.GetCell(6).CellStyle = setborderdeth;
+
+            #endregion
+
+            ////循环的导出到excel的每一行
+            //for (int i = 0; i < Data.Count; i++)
+            //{
+            //    //每循环一次，就新增一行  索引从0开始 所以第一次循环CreateRow(1) 前面已经创建了标题行为0
+            //    IRow row1 = sheet.CreateRow(i + 1);
+            //    row1.HeightInPoints = 21;
+            //    //给新加的这一行创建第一个单元格，并且给这第一个单元格设置值 以此类推...
+            //    row1.CreateCell(0).SetCellValue(Convert.ToString(Data[i].Number));
+            //    //先获取这一行的第一个单元格，再给其设置样式属性 以此类推...
+            //    row1.GetCell(0).CellStyle = setborder;
+            //    row1.CreateCell(1).SetCellValue(Data[i].ShopName);
+            //    row1.GetCell(1).CellStyle = setborder;
+            //    row1.CreateCell(2).SetCellValue(Convert.ToString(Data[i].Price));
+            //    row1.GetCell(2).CellStyle = setborder;
+            //    row1.CreateCell(3).SetCellValue(Data[i].ShopType);
+            //    row1.GetCell(3).CellStyle = setborder;
+            //    row1.CreateCell(4).SetCellValue(Convert.ToString(Data[i].Date));
+            //    row1.GetCell(4).CellStyle = setborder;
+            //}
+
+            #region 合并
+            int firstRow = 0;//起始行
+            int lastRow = 0;//结束行
+            int firstcol = 0;//起始列
+            int lastcol = 0;//结束列
+            sheet.AddMergedRegion(new CellRangeAddress(firstRow, lastRow, firstcol, lastcol));
+            #endregion
+
+            #region 导出返回路径
+            string path = "/upload/download/";
+            if (Directory.Exists(path) == false)//如果不存在就创建_paths文件夹
+            {
+                Directory.CreateDirectory(path);
+            }
+            //string filename = "实训记录.xls";
+            //using (FileStream sm = File.OpenWrite(HttpContext.Current.Server.MapPath(Path.Combine(path, filename))))
+            //{
+            //    _sb2.Append("{");
+            //    _sb2.AppendFormat("\"code\":0");
+            //    _sb2.AppendFormat(",\"msg\":\"\"");
+            //    _sb2.Append(",\"data\": [");
+            //    _sb2.Append("{");
+            //    _sb2.AppendFormat("\"PathUrl\":\"{0}\"", path + filename);
+            //    _sb2.Append("}");
+            //    _sb2.Append("]");
+            //    _sb2.Append("}");
+            //    book.Write(sm);
+            //    context.Response.Write(Message.Json("成功", _sb2.ToString()));
+            //}
+            #endregion
+
+            return "成功";
         }
 
         public bool IsReusable
