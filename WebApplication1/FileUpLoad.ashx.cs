@@ -12,6 +12,7 @@ using NPOI.HPSF;
 using NPOI.POIFS.FileSystem;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
+using System.Collections;
 
 namespace WebApplication1
 {
@@ -310,6 +311,27 @@ namespace WebApplication1
 
             return "成功";
         }
+
+        #region 数组去重去空 ArrayList的示例应用
+        /// 方法名：DelArraySame
+        /// 功能： 删除数组中重复的元素
+        /// </summary>
+        /// <param name="TempArray">所要检查删除的数组</param>
+        /// <returns>返回数组</returns>
+        public string[] DelArraySame(string[] TempArray)
+        {
+            ArrayList nStr = new ArrayList();
+            for (int i = 0; i < TempArray.Length; i++)
+            {
+                if (!nStr.Contains(TempArray[i]) && !string.IsNullOrEmpty(TempArray[i]))
+                {
+                    nStr.Add(TempArray[i]);
+                }
+            }
+            string[] newStr = (string[])nStr.ToArray(typeof(string));
+            return newStr;
+        }
+        #endregion
 
         public bool IsReusable
         {
