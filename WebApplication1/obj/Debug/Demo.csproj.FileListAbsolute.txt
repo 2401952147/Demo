@@ -87,3 +87,7 @@ C:\Users\aa\Desktop\Demo\WebApplication1\obj\Debug\Demo.csproj.CoreCompileInputs
 C:\Users\aa\Desktop\Demo\WebApplication1\obj\Debug\Demo.csproj.CopyComplete
 C:\Users\aa\Desktop\Demo\WebApplication1\obj\Debug\WebApplication1.dll
 C:\Users\aa\Desktop\Demo\WebApplication1\obj\Debug\WebApplication1.pdb
+C:\Users\aa\Desktop\Demo\WebApplication1\bin\Demo.Common.dll
+C:\Users\aa\Desktop\Demo\WebApplication1\bin\Demo.Model.dll
+C:\Users\aa\Desktop\Demo\WebApplication1\bin\Demo.Common.pdb
+C:\Users\aa\Desktop\Demo\WebApplication1\bin\Demo.Model.pdb

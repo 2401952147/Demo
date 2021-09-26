@@ -234,6 +234,16 @@
       <DependentUpon>Web.config</DependentUpon>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Demo.Common\Demo.Common.csproj">
+      <Project>{f7b9b5e6-d0ae-46f8-9a9a-59211a4b49d9}</Project>
+      <Name>Demo.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Demo.Model\Demo.Model.csproj">
+      <Project>{12442f8b-b926-4f27-961a-532b653d910a}</Project>
+      <Name>Demo.Model</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

@@ -1,19 +1,21 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Web;
 
+//操作word书签用
 using MSWord = Microsoft.Office.Interop.Word;
 using Microsoft.Office.Interop.Word;
 
 using NPOI.HSSF.UserModel;
-using NPOI.HPSF;
-using NPOI.POIFS.FileSystem;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
 using System.Collections;
 using System.Text;
+using System.Net.Mail;
+using MailMessage = System.Net.Mail.MailMessage;
+using System.Net;
+using Demo.Common;
 
 namespace WebApplication1
 {
@@ -32,11 +34,17 @@ namespace WebApplication1
                 case "Upfileload":
                     Upfileload(context);//文件上传
                     break;
-                case "CURDWord":
-                    _str = CURDWord(context);//文件上传
-                    break;
+                //case "CURDWord":
+                //    _str = CURDWord(context);//word书签操作
+                //    break;
                 case "ExcelOperationClass":
                     _str = ExcelOperationClass(context);//导出到excel
+                    break;
+                case "QQ_email":
+                    _str = QQ_email();//发送验证码
+                    break;
+                case "ExcelTo":
+                    _str = ExcelTo(context);//Excel导入
                     break;
                 default:
                     break;
@@ -313,6 +321,34 @@ namespace WebApplication1
             return "成功";
         }
 
+        public string QQ_email()
+        {
+            //实例化一个发送邮件类。
+            MailMessage mailMessage = new MailMessage();
+            //发件人邮箱地址，方法重载不同，可以根据需求自行选择。
+            mailMessage.From = new MailAddress("1765079118@qq.com");
+            //收件人邮箱地址。
+            mailMessage.To.Add(new MailAddress("2401952147@qq.com"));
+            //邮件标题。
+            mailMessage.Subject = "验证码";
+            //邮件内容。
+            mailMessage.Body = "您好，您的验证码为：663245";
+
+            //实例化一个SmtpClient类。
+            SmtpClient client = new SmtpClient();
+            //在这里我使用的是qq邮箱，所以是smtp.qq.com，如果你使用的是126邮箱，那么就是smtp.126.com。
+            client.Host = "smtp.qq.com";
+            //使用安全加密连接。
+            client.EnableSsl = true;
+            //不和请求一块发送。
+            client.UseDefaultCredentials = false;
+            //验证发件人身份(发件人的邮箱，邮箱里的生成授权码);
+            client.Credentials = new NetworkCredential("1765079118@qq.com", "hpk54188");
+            //发送
+            client.Send(mailMessage);
+            return "发送成功";
+        }
+
         #region 数组去重去空 ArrayList的示例应用
         /// 方法名：DelArraySame
         /// 功能： 删除数组中重复的元素
@@ -333,6 +369,74 @@ namespace WebApplication1
             return newStr;
         }
         #endregion
+
+        public string ExcelTo(HttpContext context)
+        {
+            string _json = "";
+            string Extension = "";
+            float contentLength = 0;
+            string fullPath = "";
+
+            HttpFileCollection hfc = context.Request.Files;
+            if (hfc.Count > 0)
+            {
+                HttpPostedFile file = context.Request.Files[0];
+                HttpPostedFile hpf = context.Request.Files[0];
+
+                contentLength = hpf.ContentLength; //文件大小
+                string contentType = hpf.ContentType;  //文件类型
+                if (hpf.ContentLength > 0)
+                {
+                    //获取扩展名 
+                    Extension = Path.GetExtension(hpf.FileName);
+
+                    string ext = Path.GetExtension(context.Request.Files[0].FileName);
+                    //string mapPath = HttpContext.Current.Server.MapPath(context.Request.ApplicationPath);
+                    string dir = HttpContext.Current.Server.MapPath("/Public/File/" + DateTime.Now.ToString("yyyy-MM-dd"));
+                    DirectoryInfo dirInfo = Directory.CreateDirectory(dir);
+                    //fullPath = dir + "/" + Guid.NewGuid().ToString() + ext;
+                    fullPath = dir + "/数据导入文件" + ext;
+                    context.Request.Files[0].SaveAs(fullPath);
+
+                    file.SaveAs(fullPath);
+                    ExcelHelper excel = new ExcelHelper(fullPath);
+                    System.Data.DataTable dt = excel.ExcelToDataTable("Sheet1", true);
+                    if (dt.Rows.Count > 0)
+                    {
+                        #region 第③步批量插入
+                        //连接数据库
+                        try
+                        {
+                            Demo.Model.UserInfo entity = new Demo.Model.UserInfo();
+                            for (int _count = 0; _count < dt.Rows.Count; _count++)
+                            {
+                                string UserName = dt.Rows[_count]["姓名"].ToString();
+                                string Sex = dt.Rows[_count]["性别"].ToString();
+                                string Age = dt.Rows[_count]["年龄"].ToString();
+                                #region 一级
+                                entity.UserName = UserName;
+                                entity.Sex = Convert.ToChar(Sex);
+                                entity.Age = Convert.ToInt32(Age);
+                                string sql = "insert into UserInfo values('" + entity.UserName + "','" + entity.Sex + "','" + entity.Age + "')";
+                                bool result = new DBHelper().ExecuteNonQuery(sql);
+                                #endregion
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _json = "{\"state\":\"fail\",\"msg\":\"" + ex.Message.ToString() + "\" }";
+                        }
+                        #endregion
+                    }
+                    _json = "{\"state\":\"success\",\"msg\":\"上传成功\" }";
+                }
+            }
+            else
+            {
+                _json = "{\"state\":\"fail\",\"msg\":\"没有数据\" }";
+            }
+            return _json;
+        }
 
         public bool IsReusable
         {
