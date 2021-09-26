@@ -370,6 +370,11 @@ namespace WebApplication1
         }
         #endregion
 
+        /// <summary>
+        /// excel导入数据库
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public string ExcelTo(HttpContext context)
         {
             string _json = "";
